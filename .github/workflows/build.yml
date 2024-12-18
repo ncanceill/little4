@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+  workflow_call:
+  workflow_run:
+    workflows: ["Release"]
+    types: [requested]
+    branches:
+      - "main"
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+    - name: Set up and build library
+      uses: leanprover/lean-action@v1
+    - name: Build documentation
+      run: |
+        lake -d docbuild update doc-gen4
+        lake -d docbuild build Little:docs
+    - name: Upload documentation
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docbuild/.lake/build/doc
